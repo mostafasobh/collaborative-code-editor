@@ -10,6 +10,7 @@ export interface UserDocument {
   createdAt: Date;
   updatedAt: Date;
   registered: boolean;
+  role: 'admin' | 'coach';
 }
 
 const UserSchema = new Schema<UserDocument>({
@@ -30,13 +31,29 @@ const UserSchema = new Schema<UserDocument>({
   },
   password: {
     type: String,
-    required: [true, 'Please provide password'],
+    validate: {
+      validator: function (this: UserDocument, value: string) {
+        if (this.registered) {
+          return value != null && value.length > 0;
+        }
+        return true;
+      },
+      message: 'Please provide a password',
+    },
     minlength: 6,
   },
   registered: {
     type: Boolean,
     default: false,
-  }
+  },
+  role: {
+    type: String,
+    enum: ["admin", "coach"],
+    required: function() {
+      return this.registered;
+    },
+    default: "admin",
+  },
 },
 {
   timestamps: true,
